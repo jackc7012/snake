@@ -4,85 +4,83 @@
 #include <list>
 
 namespace cwy_snake {
-#define BOUNDARY_DISTANCE                    10
-#define BOUNDARY_RIGHT_DISTANCE              300
-#define SIDE_LENGTH                          20
-#define GAME_WINDOW_WIDTH                    700
-#define GAME_WINDOW_HEIGTH                   700
-#define INIT_SNAKE_LENGTH                    3
+const int WINDOW_WIDTH = 1024;              // 窗口宽度
+const int WINDOW_HEIGHT = 768;              // 窗口高度
+const int BOUNDARY_DISTANCE = 10;           // 游戏界面左（上、下）边界离窗口左（上、下）侧距离
+const int BOUNDARY_RIGHT_DISTANCE = 260;    // 游戏界面右边界离窗口右侧距离
+const int SIDE_LENGTH = 20;                 // 蛇一节的边长、豆子的直径
+const int GAME_WINDOW_WIDTH = 700;          // 游戏窗口宽度
+const int GAME_WINDOW_HEIGTH = 700;         // 游戏窗口高度
+const int INIT_SNAKE_LENGTH = 3;            // 初始化蛇长度
 
-enum dir { UP, DOWN, LEFT, RIGHT };
+enum class dir { // 蛇行进方向
+    UP, DOWN, LEFT, RIGHT
+};
 
-UINT32 boundary_height = 0, boundary_width = 0, score = 0;
-bool is_standard_height = false, is_standard_width = false, is_game_begin = false;
+UINT32 boundaryHeight{0};       // 标题栏高度
+UINT32 boundaryWidth{0};        // 标题栏宽度
+UINT32 score{0};                // 当前得分
+bool isStandardHeight{false};
+bool isStandardWidth{false};
+bool isGameBegin{false};
 
 struct Coordinate {
-    Coordinate() {
-        x = 0;
-        y = 0;
+    Coordinate()
+        : x_(0), y_(0)
+    {
     }
-    Coordinate(UINT32 _x, UINT32 _y) {
-        x = _x;
-        y = _y;
+    Coordinate(UINT32 x, UINT32 y)
+        : x_(x), y_(y)
+    {
     }
-    UINT32 x;
-    UINT32 y;
+    UINT32 x_;
+    UINT32 y_;
 } coordinate;
 
 struct Font {
-    Font() {
-        location.x = 0;
-        location.y = 0;
-        size_h = 0;
-        size_w = 0;
-        red = 0;
-        green = 0;
-        blue = 0;
+    Font()
+        : location_(0, 0), sizeHeight_(0), sizeWidth_(0), red_(0), green_(0), blue_(0)
+    {
     }
-    Font(UINT32 _x, UINT32 _y, UINT32 _height, UINT32 _width, UINT32 _red, UINT32 _green, UINT32 _blue) {
-        location.x = _x;
-        location.y = _y;
-        size_h = _height;
-        size_w = _width;
-        red = _red;
-        green = _green;
-        blue = _blue;
+    Font(UINT32 x, UINT32 y, UINT32 height, UINT32 width, UINT32 red, UINT32 green, UINT32 blue)
+        : location_(x, y), sizeHeight_(height), sizeWidth_(width), red_(red), green_(green), blue_(blue)
+    {
     }
-    Coordinate location;
-    UINT32 size_h;
-    UINT32 size_w;
-    UINT32 red;
-    UINT32 green;
-    UINT32 blue;
+    Coordinate location_;
+    UINT32 sizeHeight_;
+    UINT32 sizeWidth_;
+    UINT32 red_;
+    UINT32 green_;
+    UINT32 blue_;
 } font;
 
 struct Bean {
-    Bean() {
-        location.x = 0;
-        location.y = 0;
+    Bean()
+        : location_(0, 0)
+    {
     }
-    Bean(UINT32 _x, UINT32 _y) {
-        location.x = _x;
-        location.y = _y;
+    Bean(UINT32 x, UINT32 y)
+        : location_(x, y)
+    {
     }
-    Coordinate location;
+    Coordinate location_;
 } bean;
 
 struct Snake {
-    Snake() {
-        location.x = 0;
-        location.y = 0;
+    Snake()
+        : location_(0, 0)
+    {
     }
-    Snake(UINT32 _x, UINT32 _y) {
-        location.x = _x;
-        location.y = _y;
+    Snake(UINT32 x, UINT32 y)
+        : location_(x, y)
+    {
     }
-    Coordinate location;
+    Coordinate location_;
 } snake;
 
 std::list<Snake> snake_list;
 
-volatile dir direction = RIGHT;
+volatile dir direction = dir::RIGHT;
 
 }
 

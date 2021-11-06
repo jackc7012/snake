@@ -4,42 +4,14 @@
 #include "stdafx.h"
 #include "snake_main.h"
 #include <time.h>
-#include "public.h"
 
 using namespace cwy_snake;
-#define MAX_LOADSTRING                       100
-#define WINDOW_WIDTH                         1024
-#define WINDOW_HEIGHT                        768
-
-// Global Variables:
-HINSTANCE hInst;								// current instance
-TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
-TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
-RECT rc;
-
-// Forward declarations of functions included in this code module:
-ATOM				MyRegisterClass(HINSTANCE hInstance);
-BOOL				InitInstance(HINSTANCE, int);
-LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
-void                OnTimer(HWND);
-void                DrawRectangle(HDC);
-void                DrawBoundary(HDC);
-void                ShowText(HDC, WCHAR *, cwy_snake::Font &);
-void                ShowText(HDC, int);
-void                CreateBean();
-void                CreateSnake(HWND);
-bool                SnakeMove();
-void                ShowSnake(HDC);
-void                ShowBean(HDC);
-bool                JudgeEatBean();
-void                AddSnakeLength();
-bool                JudgeSnakeTouchBody();
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
-                       _In_opt_ HINSTANCE hPrevInstance,
-                       _In_ LPTSTR    lpCmdLine,
-                       _In_ int       nCmdShow) {
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPTSTR    lpCmdLine,
+    _In_ int       nCmdShow)
+{
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -52,10 +24,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
     LoadString(hInstance, IDC_SNAKE, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
-    //srand((unsigned int)time(NULL));
+    srand((unsigned int)time(NULL));
 
     // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow)) {
+    if (!InitInstance(hInstance, nCmdShow)) {
         return FALSE;
     }
 
@@ -70,32 +42,31 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    return (int) msg.wParam;
+    return (int)msg.wParam;
 }
-
-
 
 //
 //  FUNCTION: MyRegisterClass()
 //
 //  PURPOSE: Registers the window class.
 //
-ATOM MyRegisterClass(HINSTANCE hInstance) {
+ATOM MyRegisterClass(HINSTANCE hInstance)
+{
     WNDCLASSEX wcex;
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style			= CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc	= WndProc;
-    wcex.cbClsExtra		= 0;
-    wcex.cbWndExtra		= 0;
-    wcex.hInstance		= hInstance;
-    wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SNAKE));
-    wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground	= (HBRUSH)::GetStockObject(BLACK_BRUSH);
-    wcex.lpszMenuName	= NULL;//MAKEintRESOURCE(IDC_SNAKE);
-    wcex.lpszClassName	= szWindowClass;
-    wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SNAKE));
+    wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)::GetStockObject(BLACK_BRUSH);
+    wcex.lpszMenuName = NULL;
+    wcex.lpszClassName = szWindowClass;
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
     return RegisterClassEx(&wcex);
 }
@@ -110,11 +81,12 @@ ATOM MyRegisterClass(HINSTANCE hInstance) {
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
+BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+{
     HWND hWnd;
 
     hInst = hInstance; // Store instance handle in our global variable
-    int scrWidth =  GetSystemMetrics(SM_CXSCREEN);
+    int scrWidth = GetSystemMetrics(SM_CXSCREEN);
     int scrHeight = GetSystemMetrics(SM_CYSCREEN);
 
     RECT rect;
@@ -124,7 +96,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
     rect.top = (scrHeight - rect.bottom) / 2;
 
     hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-                        0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, NULL, NULL, hInstance, NULL);
+        0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, NULL, NULL, hInstance, NULL);
 
     if (!hWnd) {
         return FALSE;
@@ -147,7 +119,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
 //  WM_DESTROY	- post a quit message and return
 //
 //
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
     int wmId, wmEvent;
     PAINTSTRUCT ps;
     HDC hdc;
@@ -155,14 +128,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     switch (message) {
     case WM_CREATE:
         GetClientRect(hWnd, &rc);
-        boundary_width = WINDOW_WIDTH - rc.right;
-        boundary_height = WINDOW_HEIGHT - rc.bottom;
-        is_standard_height = (rc.top + BOUNDARY_DISTANCE + GAME_WINDOW_HEIGTH) <= (rc.bottom - BOUNDARY_DISTANCE);
-        is_standard_width = (rc.left + BOUNDARY_DISTANCE + GAME_WINDOW_WIDTH) <= (rc.right - BOUNDARY_DISTANCE);
+        boundaryWidth = WINDOW_WIDTH - rc.right;
+        boundaryHeight = WINDOW_HEIGHT - rc.bottom;
+        isStandardHeight = ((rc.top + BOUNDARY_DISTANCE + GAME_WINDOW_HEIGTH) <= (rc.bottom - BOUNDARY_DISTANCE));
+        isStandardWidth = ((rc.left + BOUNDARY_DISTANCE + GAME_WINDOW_WIDTH) <= (rc.right - BOUNDARY_RIGHT_DISTANCE));
         break;
 
     case WM_COMMAND:
-        wmId    = LOWORD(wParam);
+        wmId = LOWORD(wParam);
         wmEvent = HIWORD(wParam);
         // Parse the menu selections:
         switch (wmId) {
@@ -182,41 +155,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     case WM_PAINT:
         hdc = BeginPaint(hWnd, &ps);
         // TODO: Add any drawing code here...
-        DrawRectangle(hdc);
-        ShowText(hdc, L"贪吃蛇游戏", Font(rc.right / 4, rc.bottom / 3, 75, 50, 0, 255, 0));
-        ShowText(hdc, L"按Enter键开始", Font(rc.right / 3, rc.bottom / 3 * 2, 30, 20, 0, 0, 255));
+        RestartGame(hdc);
         EndPaint(hWnd, &ps);
         break;
 
     case WM_KEYDOWN:
         switch (wParam) {
         case VK_RETURN:
-            CreateSnake(hWnd);
-            CreateBean();
-            SetTimer(hWnd, 1, 200, NULL);
+            if (!isGameBegin) {
+                SetTimer(hWnd, 1, 200, NULL);
+                CreateSnake(hWnd);
+                CreateBean();
+                isGameBegin = true;
+            }
             break;
 
         case VK_UP:
-            if(DOWN != direction) {
-                direction = UP;
+            if (direction != dir::DOWN) {
+                direction = dir::UP;
             }
             break;
 
         case VK_DOWN:
-            if(UP != direction) {
-                direction = DOWN;
+            if (direction != dir::UP) {
+                direction = dir::DOWN;
             }
             break;
 
         case VK_LEFT:
-            if(RIGHT != direction) {
-                direction = LEFT;
+            if (direction != dir::RIGHT) {
+                direction = dir::LEFT;
             }
             break;
 
         case VK_RIGHT:
-            if(LEFT != direction) {
-                direction = RIGHT;
+            if (direction != dir::LEFT) {
+                direction = dir::RIGHT;
             }
             break;
 
@@ -242,7 +216,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 }
 
 // Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
     UNREFERENCED_PARAMETER(lParam);
     switch (message) {
     case WM_INITDIALOG:
@@ -258,7 +233,8 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
     return (INT_PTR)FALSE;
 }
 
-void OnTimer(HWND hWnd) {
+void OnTimer(HWND hWnd)
+{
     HDC hdc = GetDC(hWnd);
 
     // 双缓存-防止图片刷新时闪烁
@@ -277,13 +253,12 @@ void OnTimer(HWND hWnd) {
     if (!SnakeMove()) { // 蛇头触碰边界/蛇身-游戏结束
         KillTimer(hWnd, 1);
         snake_list.clear();
-        direction = RIGHT;
+        direction = dir::RIGHT;
         score = 0;
         DrawRectangle(hdc);
         MessageBox(hWnd, L"游戏结束", L"提示", MB_OK);
-        DrawRectangle(hdc);
-        ShowText(hdc, L"贪吃蛇游戏", Font(rc.right / 4, rc.bottom / 3, 75, 50, 0, 255, 0));
-        ShowText(hdc, L"按Enter键开始", Font(rc.right / 3, rc.bottom / 3 * 2, 30, 20, 0, 0, 255));
+        RestartGame(hdc);
+        isGameBegin = false;
     } else {
         ShowSnake(hComDc);
         ShowBean(hComDc);
@@ -293,10 +268,9 @@ void OnTimer(HWND hWnd) {
             score += 10;
         }
         ShowText(hComDc, score);
+        // 将兼容DC上的图片画到主DC上
+        BitBlt(hdc, 0, 0, rc.right, rc.bottom, hComDc, 0, 0, SRCCOPY);
     }
-
-    // 将兼容DC上的图片画到主DC上
-    BitBlt(hdc, 0, 0, rc.right, rc.bottom, hComDc, 0, 0, SRCCOPY);
 
     DeleteDC(hComDc);
     DeleteObject(hr);
@@ -306,7 +280,15 @@ void OnTimer(HWND hWnd) {
     return;
 }
 
-void DrawRectangle(HDC hdc) {
+void RestartGame(HDC hdc)
+{
+    DrawRectangle(hdc);
+    ShowText(hdc, L"贪吃蛇游戏", Font(rc.right / 4, rc.bottom / 3, 75, 50, 0, 255, 0));
+    ShowText(hdc, L"按Enter键开始", Font(rc.right / 3, rc.bottom / 3 * 2, 30, 20, 0, 0, 255));
+}
+
+void DrawRectangle(HDC hdc)
+{
     HBRUSH hr = CreateSolidBrush(RGB(0, 0, 0));
     HBRUSH old_brush = (HBRUSH)SelectObject(hdc, hr);
     Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
@@ -317,7 +299,8 @@ void DrawRectangle(HDC hdc) {
     return;
 }
 
-void DrawBoundary(HDC hdc) {
+void DrawBoundary(HDC hdc)
+{
     HPEN hp = CreatePen(PS_SOLID, 5, RGB(255, 0, 0));
     HPEN old_pen = (HPEN)SelectObject(hdc, hp);
 
@@ -325,8 +308,8 @@ void DrawBoundary(HDC hdc) {
     HBRUSH old_brush = (HBRUSH)SelectObject(hdc, hr);
 
     Rectangle(hdc, rc.left + BOUNDARY_DISTANCE, rc.top + BOUNDARY_DISTANCE,
-              is_standard_width ? (rc.left + BOUNDARY_DISTANCE + GAME_WINDOW_WIDTH) : (rc.right - BOUNDARY_RIGHT_DISTANCE),
-              is_standard_height ? (rc.top + BOUNDARY_DISTANCE + GAME_WINDOW_HEIGTH) : (rc.bottom - BOUNDARY_DISTANCE));
+        isStandardWidth ? (rc.left + BOUNDARY_DISTANCE + GAME_WINDOW_WIDTH) : (rc.right - BOUNDARY_RIGHT_DISTANCE),
+        isStandardHeight ? (rc.top + BOUNDARY_DISTANCE + GAME_WINDOW_HEIGTH) : (rc.bottom - BOUNDARY_DISTANCE));
 
     SelectObject(hdc, old_pen);
     SelectObject(hdc, old_brush);
@@ -340,50 +323,52 @@ void DrawBoundary(HDC hdc) {
 }
 
 
-void ShowText(HDC hdc, WCHAR * text, cwy_snake::Font & font) {
-    if(nullptr == text)
-        return ;
+void ShowText(HDC hdc, WCHAR* text, cwy_snake::Font& font)
+{
+    if (nullptr == text)
+        return;
 
     HFONT my_font = CreateFont(
-                        font.size_h,
-                        font.size_w,
-                        0,
-                        0,
-                        700,
-                        FALSE,
-                        FALSE,
-                        FALSE,
-                        DEFAULT_CHARSET,
-                        OUT_CHARACTER_PRECIS, CLIP_CHARACTER_PRECIS,
-                        DEFAULT_QUALITY,
-                        FF_DONTCARE,
-                        L"宋体"
-                    );
-    SetTextColor(hdc, RGB(font.red, font.green, font.blue));
+        font.sizeHeight_,
+        font.sizeWidth_,
+        0,
+        0,
+        700,
+        FALSE,
+        FALSE,
+        FALSE,
+        DEFAULT_CHARSET,
+        OUT_CHARACTER_PRECIS, CLIP_CHARACTER_PRECIS,
+        DEFAULT_QUALITY,
+        FF_DONTCARE,
+        L"宋体"
+    );
+    SetTextColor(hdc, RGB(font.red_, font.green_, font.blue_));
     SetBkMode(hdc, TRANSPARENT);
     SelectObject(hdc, my_font);
-    TextOut(hdc, font.location.x, font.location.y, text, wcslen(text));
+    TextOut(hdc, font.location_.x_, font.location_.y_, text, wcslen(text));
     DeleteObject(my_font);
 
     return;
 }
 
-void ShowText(HDC hdc, int score) {
+void ShowText(HDC hdc, int score)
+{
     HFONT font = CreateFont(
-                     25,
-                     15,
-                     0,
-                     0,
-                     700,
-                     FALSE,
-                     FALSE,
-                     FALSE,
-                     DEFAULT_CHARSET,
-                     OUT_CHARACTER_PRECIS, CLIP_CHARACTER_PRECIS,
-                     DEFAULT_QUALITY,
-                     FF_DONTCARE,
-                     L"宋体"
-                 );
+        25,
+        15,
+        0,
+        0,
+        700,
+        FALSE,
+        FALSE,
+        FALSE,
+        DEFAULT_CHARSET,
+        OUT_CHARACTER_PRECIS, CLIP_CHARACTER_PRECIS,
+        DEFAULT_QUALITY,
+        FF_DONTCARE,
+        L"宋体"
+    );
     SetTextColor(hdc, RGB(0, 255, 0));
     SetBkMode(hdc, TRANSPARENT);
     SelectObject(hdc, font);
@@ -395,114 +380,123 @@ void ShowText(HDC hdc, int score) {
     return;
 }
 
-void CreateBean() {
-    int rand_x = is_standard_width ? (GAME_WINDOW_WIDTH / 20) : ((rc.right - BOUNDARY_RIGHT_DISTANCE) / 20);
-    int rand_y = is_standard_height ? (GAME_WINDOW_HEIGTH / 20) : ((rc.bottom - BOUNDARY_DISTANCE * 2) / 20);
+void CreateBean()
+{
+    int rand_x = (isStandardWidth ? (GAME_WINDOW_WIDTH / 20) : ((rc.right - BOUNDARY_RIGHT_DISTANCE) / 20));
+    int rand_y = (isStandardHeight ? (GAME_WINDOW_HEIGTH / 20) : ((rc.bottom - BOUNDARY_DISTANCE * 2) / 20));
 
     int x = rand() % (rand_x - 2) + 1;
     int y = rand() % (rand_y - 2) + 1;
 
     // 判断坐标
     while (1) {
-        while (x == bean.location.x) {
+        while (x == bean.location_.x_) {
             x = rand() % (rand_x - 2) + 1;
         }
 
-        while (y == bean.location.y) {
+        while (y == bean.location_.y_) {
             y = rand() % (rand_y - 2) + 1;
         }
 
         for (auto itor = snake_list.cbegin(); itor != snake_list.cend(); ++itor) {
-            if ((x == (*itor).location.x) && (y == (*itor).location.y)) {
+            if ((x == (*itor).location_.x_) && (y == (*itor).location_.y_)) {
                 x = rand() % (rand_x - 2) + 1;
                 y = rand() % (rand_y - 2) + 1;
             }
         }
 
-        if ((x != bean.location.x) && (y != bean.location.y)) {
+        if ((x != bean.location_.x_) && (y != bean.location_.y_)) {
             break;
         }
     }
 
-    bean.location.x = x;
-    bean.location.y = y;
+    bean.location_.x_ = x;
+    bean.location_.y_ = y;
 
     return;
 }
 
-void CreateSnake(HWND hwnd) {
+void CreateSnake(HWND hwnd)
+{
     HDC hdc = GetDC(hwnd);
 
-    DrawRectangle(hdc);
-
-    int rand_x = is_standard_width ? (GAME_WINDOW_WIDTH / 20) : ((rc.right - BOUNDARY_RIGHT_DISTANCE) / 20);
-    int rand_y = is_standard_height ? (GAME_WINDOW_HEIGTH / 20) : ((rc.bottom - BOUNDARY_DISTANCE * 2) / 20);
+    int rand_x = (isStandardWidth ? (GAME_WINDOW_WIDTH / 20) : ((rc.right - BOUNDARY_RIGHT_DISTANCE) / 20));
+    int rand_y = (isStandardHeight ? (GAME_WINDOW_HEIGTH / 20) : ((rc.bottom - BOUNDARY_DISTANCE * 2) / 20));
     int x = rand() % (rand_x / 3 * 2);
-    while((x - 3) <= 0) {
+    while ((x - 3) <= 0) {
         x = rand() % (rand_x / 3 * 2);
     }
-    int y = rand() % (rand_y  / 3 * 2);
-    while((y - 3) <= 0) {
+    int y = rand() % (rand_y / 3 * 2);
+    while ((y - 3) <= 0) {
         y = rand() % (rand_y / 3 * 2);
     }
     int i = 0;
-    while(i < INIT_SNAKE_LENGTH) {
+    while (i < INIT_SNAKE_LENGTH) {
         ++i;
         snake_list.push_back(Snake((x - i), y));
     }
-    bean.location.x = x;
-    bean.location.y = y;
+    bean.location_.x_ = x;
+    bean.location_.y_ = y;
 
     ReleaseDC(hwnd, hdc);
 
     return;
 }
 
-bool SnakeMove() {
+bool SnakeMove()
+{
     if (!JudgeSnakeTouchBody()) {
         return false;
     }
 
     switch (direction) {
-    case UP: {
-        if((((snake_list.front().location.y) * SIDE_LENGTH) + BOUNDARY_DISTANCE) <= (UINT32)(rc.top + BOUNDARY_DISTANCE)) {
+    case dir::UP:
+    {
+        if ((((snake_list.front().location_.y_) * SIDE_LENGTH) + BOUNDARY_DISTANCE) <= (UINT32)(rc.top + BOUNDARY_DISTANCE)) {
             return false;
         }
         Snake snake = snake_list.front();
         snake_list.pop_back();
-        snake_list.push_front(Snake(snake.location.x, snake.location.y - 1));
+        snake_list.push_front(Snake(snake.location_.x_, snake.location_.y_ - 1));
     }
     break;
 
-    case DOWN: {
-        if((((snake_list.front().location.y + 1) * SIDE_LENGTH) + BOUNDARY_DISTANCE) >= (is_standard_height ? (UINT32)(rc.top + BOUNDARY_DISTANCE + GAME_WINDOW_HEIGTH) : (UINT32)(rc.bottom - BOUNDARY_DISTANCE))) {
+    case dir::DOWN:
+    {
+        if ((((snake_list.front().location_.y_ + 1) * SIDE_LENGTH) + BOUNDARY_DISTANCE) >=
+                (isStandardHeight ? (UINT32)(rc.top + BOUNDARY_DISTANCE + GAME_WINDOW_HEIGTH) :
+                                    (UINT32)(rc.bottom - BOUNDARY_DISTANCE))) {
             return false;
         }
         Snake snake = snake_list.front();
         snake_list.pop_back();
-        snake_list.push_front(Snake(snake.location.x, snake.location.y + 1));
-    }
-
-    break;
-
-    case LEFT: {
-        if((((snake_list.front().location.x) * SIDE_LENGTH) + BOUNDARY_DISTANCE) <= (UINT32)(rc.left + BOUNDARY_DISTANCE)) {
-            return false;
-        }
-        Snake snake = snake_list.front();
-        snake_list.pop_back();
-        snake_list.push_front(Snake(snake.location.x - 1, snake.location.y));
+        snake_list.push_front(Snake(snake.location_.x_, snake.location_.y_ + 1));
     }
 
     break;
 
-    case RIGHT: {
-        if((((snake_list.front().location.x + 1) * SIDE_LENGTH) + BOUNDARY_DISTANCE) >= (is_standard_width ? (UINT32)(rc.left + BOUNDARY_DISTANCE + GAME_WINDOW_WIDTH) : (UINT32)(rc.right - BOUNDARY_RIGHT_DISTANCE))) {
+    case dir::LEFT:
+    {
+        if ((((snake_list.front().location_.x_) * SIDE_LENGTH) + BOUNDARY_DISTANCE) <= (UINT32)(rc.left + BOUNDARY_DISTANCE)) {
             return false;
         }
         Snake snake = snake_list.front();
         snake_list.pop_back();
-        snake_list.push_front(Snake(snake.location.x + 1, snake.location.y));
+        snake_list.push_front(Snake(snake.location_.x_ - 1, snake.location_.y_));
+    }
+
+    break;
+
+    case dir::RIGHT:
+    {
+        if ((((snake_list.front().location_.x_ + 1) * SIDE_LENGTH) + BOUNDARY_DISTANCE) >=
+                (isStandardWidth ? (UINT32)(rc.left + BOUNDARY_DISTANCE + GAME_WINDOW_WIDTH) :
+                                    (UINT32)(rc.right - BOUNDARY_RIGHT_DISTANCE))) {
+            return false;
+        }
+        Snake snake = snake_list.front();
+        snake_list.pop_back();
+        snake_list.push_front(Snake(snake.location_.x_ + 1, snake.location_.y_));
     }
     break;
 
@@ -513,13 +507,14 @@ bool SnakeMove() {
     return true;
 }
 
-void ShowSnake(HDC hdc) {
+void ShowSnake(HDC hdc)
+{
     HBRUSH hr = CreateSolidBrush(RGB(0, 255, 0));
     HBRUSH old_brush = (HBRUSH)SelectObject(hdc, hr);
 
-    for(auto itor = snake_list.cbegin(); itor != snake_list.cend(); ++itor) {
-        Rectangle(hdc, BOUNDARY_DISTANCE + (*itor).location.x * SIDE_LENGTH, BOUNDARY_DISTANCE + (*itor).location.y * SIDE_LENGTH,
-                  BOUNDARY_DISTANCE + ((*itor).location.x + 1) * SIDE_LENGTH, BOUNDARY_DISTANCE + ((*itor).location.y + 1) * SIDE_LENGTH);
+    for (auto itor = snake_list.cbegin(); itor != snake_list.cend(); ++itor) {
+        Rectangle(hdc, BOUNDARY_DISTANCE + (*itor).location_.x_ * SIDE_LENGTH, BOUNDARY_DISTANCE + (*itor).location_.y_ * SIDE_LENGTH,
+            BOUNDARY_DISTANCE + ((*itor).location_.x_ + 1) * SIDE_LENGTH, BOUNDARY_DISTANCE + ((*itor).location_.y_ + 1) * SIDE_LENGTH);
     }
 
     SelectObject(hdc, old_brush);
@@ -530,15 +525,16 @@ void ShowSnake(HDC hdc) {
     return;
 }
 
-void ShowBean(HDC hdc) {
+void ShowBean(HDC hdc)
+{
     HPEN hp = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
     HPEN old_pen = (HPEN)SelectObject(hdc, hp);
 
     HBRUSH hr = CreateSolidBrush(RGB(0, 255, 0));
     HBRUSH old_brush = (HBRUSH)SelectObject(hdc, hr);
 
-    Ellipse(hdc, BOUNDARY_DISTANCE + bean.location.x * SIDE_LENGTH + 1, BOUNDARY_DISTANCE + bean.location.y * SIDE_LENGTH + 1,
-            BOUNDARY_DISTANCE + (bean.location.x + 1) * SIDE_LENGTH - 1, BOUNDARY_DISTANCE + (bean.location.y + 1) * SIDE_LENGTH - 1);
+    Ellipse(hdc, BOUNDARY_DISTANCE + bean.location_.x_ * SIDE_LENGTH + 1, BOUNDARY_DISTANCE + bean.location_.y_ * SIDE_LENGTH + 1,
+        BOUNDARY_DISTANCE + (bean.location_.x_ + 1) * SIDE_LENGTH - 1, BOUNDARY_DISTANCE + (bean.location_.y_ + 1) * SIDE_LENGTH - 1);
 
     SelectObject(hdc, old_brush);
     SelectObject(hdc, old_pen);
@@ -551,36 +547,38 @@ void ShowBean(HDC hdc) {
     return;
 }
 
-bool JudgeEatBean() {
+bool JudgeEatBean()
+{
     Snake my_first = snake_list.front();
-    int x = my_first.location.x;
-    int y = my_first.location.y;
+    int x = my_first.location_.x_;
+    int y = my_first.location_.y_;
 
-    if ((x == bean.location.x) && (y == bean.location.y)) {
+    if ((x == bean.location_.x_) && (y == bean.location_.y_)) {
         return true;
     }
 
     return false;
 }
 
-void AddSnakeLength() {
+void AddSnakeLength()
+{
     Snake my_last = snake_list.back();
-    int x = my_last.location.x;
-    int y = my_last.location.y;
+    int x = my_last.location_.x_;
+    int y = my_last.location_.y_;
     switch (direction) {
-    case UP:
+    case dir::UP:
         snake_list.push_back(Snake(x, y + 1));
         break;
 
-    case DOWN:
+    case dir::DOWN:
         snake_list.push_back(Snake(x, y - 1));
         break;
 
-    case LEFT:
+    case dir::LEFT:
         snake_list.push_back(Snake(x + 1, y));
         break;
 
-    case RIGHT:
+    case dir::RIGHT:
         snake_list.push_back(Snake(x - 1, y));
         break;
 
@@ -591,14 +589,15 @@ void AddSnakeLength() {
     return;
 }
 
-bool JudgeSnakeTouchBody() {
+bool JudgeSnakeTouchBody()
+{
     Snake my_first = snake_list.front();
-    int x = my_first.location.x;
-    int y = my_first.location.y;
+    int x = my_first.location_.x_;
+    int y = my_first.location_.y_;
 
     auto itor = ++snake_list.cbegin();
     for (; itor != snake_list.cend(); ++itor) {
-        if (((*itor).location.x == x) && ((*itor).location.y == y)) {
+        if (((*itor).location_.x_ == x) && ((*itor).location_.y_ == y)) {
             return false;
         }
     }
