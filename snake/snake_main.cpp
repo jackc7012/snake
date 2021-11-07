@@ -8,9 +8,9 @@
 using namespace cwy_snake;
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
-    _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPTSTR    lpCmdLine,
-    _In_ int       nCmdShow)
+                       _In_opt_ HINSTANCE hPrevInstance,
+                       _In_ LPTSTR    lpCmdLine,
+                       _In_ int       nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -32,7 +32,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
     }
 
     hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SNAKE));
-
 
     // Main message loop:
     while (GetMessage(&msg, NULL, 0, 0)) {
